@@ -1,0 +1,77 @@
+/**
+ * SVG Charts & Scientific Visualization Styles
+ */
+
+.chart-wrapper {
+  position: relative;
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-md);
+  overflow: hidden;
+}
+
+.chart-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.chart-axis {
+  stroke: var(--color-border-strong);
+  stroke-width: 1.5;
+}
+
+.chart-grid {
+  stroke: var(--color-border-subtle);
+  stroke-width: 1;
+  stroke-dasharray: 4 4;
+}
+
+.chart-axis-label {
+  font-family: var(--font-sans);
+  font-size: 12px;
+  fill: var(--color-text-muted);
+}
+
+.chart-line-reactant {
+  fill: none;
+  stroke: var(--color-ineffective);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+}
+
+.chart-line-product {
+  fill: none;
+  stroke: var(--color-primary);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+}
+
+.chart-line-tangent {
+  fill: none;
+  stroke: var(--color-warning);
+  stroke-width: 2;
+  stroke-dasharray: 4 4;
+}
+
+.chart-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-md);
+  font-size: 0.8125rem;
+  margin-top: var(--space-sm);
+  justify-content: center;
+}
+
+.chart-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}

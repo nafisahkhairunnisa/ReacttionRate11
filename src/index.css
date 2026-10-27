@@ -1,0 +1,58 @@
+@import './styles/variables.css';
+@import './styles/typography.css';
+@import './styles/components.css';
+@import './styles/charts.css';
+@import './styles/animations.css';
+
+/* Base Reset */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+}
+
+#root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* App Shell Layout */
+.app-layout {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: var(--color-bg-app);
+}
+
+.app-body {
+  display: flex;
+  flex: 1;
+  max-width: var(--container-max-width);
+  margin: 0 auto;
+  width: 100%;
+  padding: var(--space-lg);
+  gap: var(--space-xl);
+}
+
+.app-main {
+  flex: 1;
+  min-width: 0; /* Prevents overflow in flex child */
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xl);
+}
+
+/* Responsive adjustments */
+@media (max-width: 960px) {
+  .app-body {
+    flex-direction: column;
+    padding: var(--space-md);
+    gap: var(--space-lg);
+  }
+}
