@@ -3,7 +3,7 @@ import React from 'react';
 /**
  * FormulaRenderer
  * Renders chemical formulas with proper subscripts and superscripts
- * Examples: "Na2S2O3" -> Na₂S₂O₃, "Ea" -> Eₐ, "v = k[A]^m[B]^n"
+ * Examples: "Na2S2O3" -> Na₂S₂O₃, "Ea" -> Eₐ, "r = k[A]^m[B]^n"
  */
 export function FormulaRenderer({ formula, className = '' }) {
   if (!formula) return null;
