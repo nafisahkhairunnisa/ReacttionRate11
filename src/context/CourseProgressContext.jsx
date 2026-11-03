@@ -1,4 +1,5 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
+import { CourseProgressContext } from './courseContext';
 import { getStorageItem, setStorageItem, STORAGE_KEYS } from '../utils/storage';
 import { COURSE_CHAPTERS } from '../data/courseChapters';
 
@@ -7,8 +8,6 @@ const defaultProgress = {
   completedChapters: [],
   milestoneProgress: {}
 };
-
-const CourseProgressContext = createContext(null);
 
 export function CourseProgressProvider({ children }) {
   const [progress, setProgress] = useState(() =>
@@ -65,12 +64,4 @@ export function CourseProgressProvider({ children }) {
       {children}
     </CourseProgressContext.Provider>
   );
-}
-
-export function useCourseProgress() {
-  const context = useContext(CourseProgressContext);
-  if (!context) {
-    throw new Error('useCourseProgress must be used within a CourseProgressProvider');
-  }
-  return context;
 }

@@ -1,4 +1,5 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
+import { GamificationContext } from './gamificationContext';
 import { getStorageItem, setStorageItem, STORAGE_KEYS } from '../utils/storage';
 
 const defaultGamification = {
@@ -6,8 +7,6 @@ const defaultGamification = {
   badges: ['badge-starter'],
   currentRank: 'Pelajar Kinetika'
 };
-
-const GamificationContext = createContext(null);
 
 export function GamificationProvider({ children }) {
   const [data, setData] = useState(() =>
@@ -49,12 +48,4 @@ export function GamificationProvider({ children }) {
       {children}
     </GamificationContext.Provider>
   );
-}
-
-export function useGamification() {
-  const context = useContext(GamificationContext);
-  if (!context) {
-    throw new Error('useGamification must be used within a GamificationProvider');
-  }
-  return context;
 }
