@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useCourseProgress } from '../hooks/useCourseProgress';
 import { Button } from '../components/common/Button';
 import { Badge } from '../components/common/Badge';
+import { VirtualLab } from '../components/chemistry/VirtualLab';
 
 /**
  * Module2Page Component - ChemVerse
@@ -346,16 +347,44 @@ export function Module2Page({ onNavigate }) {
                 </div>
 
                 <div className="subchapter-body">
-                  <div className="next-chapter-teaser">
-                    <div className="teaser-badge">FITUR SIMULASI TAHAP MILESTONE 3 (PRD)</div>
-                    <h4>Mesin Simulator Canvas 2D Partikel Kinetika</h4>
-                    <p>
-                      Simulator ini dirancang untuk menampilkan gerak partikel gas acak secara dinamis:
-                      partikel saling memantul jika energinya tidak cukup (tumbukan tidak efektif) 
-                      dan membentuk produk berwarna emerald saat melampaui \(E_a\) (tumbukan efektif).
-                    </p>
-                    <div className="teaser-status">
-                      <Badge variant="cyan">Sedang Disiapkan untuk Integrasi Penuh</Badge>
+                  <p>
+                    Simulator interaktif 2D ini menampilkan gerakan partikel gas secara mikroskopis.
+                    Amati bagaimana partikel bergerak acak, saling bertumbukan, dan memantul jika energinya tidak cukup (tumbukan tidak efektif), 
+                    serta membentuk produk berwarna emerald saat melampaui <em>E</em><sub>a</sub> (tumbukan efektif).
+                  </p>
+
+                  <div className="phet-embed-card">
+                    <div className="phet-embed-header">
+                      <div className="phet-title-group">
+                        <Badge variant="cyan">SIMULASI EKSTERNAL PhET</Badge>
+                        <h4 className="phet-sim-title">Simulasi Tumbukan & Difusi Partikel Gas (PhET Interactive Simulations)</h4>
+                      </div>
+                      <a
+                        href="https://phet.colorado.edu/sims/html/diffusion/latest/diffusion_en.html"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="phet-external-link"
+                      >
+                        Buka di Tab Baru ↗
+                      </a>
+                    </div>
+
+                    <div className="phet-iframe-wrapper">
+                      <iframe
+                        src="https://phet.colorado.edu/sims/html/diffusion/latest/diffusion_en.html"
+                        title="Laboratorium Tumbukan Partikel 2D PhET"
+                        className="phet-iframe"
+                        allowFullScreen
+                      />
+                    </div>
+
+                    <div className="phet-guide-tips">
+                      <h5>💡 Panduan Praktik Tumbukan Partikel:</h5>
+                      <ul>
+                        <li><strong>Eksperimen Konsentrasi:</strong> Naikkan jumlah partikel biru dan merah. Amati bagaimana frekuensi tumbukan per detik meningkat drastis!</li>
+                        <li><strong>Eksperimen Suhu:</strong> Naikkan suhu sistem untuk meningkatkan kecepatan dan energi kinetik partikel.</li>
+                        <li><strong>Pengamatan Mikroskopis:</strong> Tumbukan hanya menghasilkan reaksi jika energi tumbukan melampaui ambang batas energi aktivasi (<em>E</em><sub>a</sub>) dengan orientasi yang tepat.</li>
+                      </ul>
                     </div>
                   </div>
                 </div>
@@ -389,18 +418,7 @@ export function Module2Page({ onNavigate }) {
                 </div>
 
                 <div className="subchapter-body">
-                  <div className="next-chapter-teaser">
-                    <div className="teaser-badge">LABORATORIUM PRAKTIKUM VIRTUAL</div>
-                    <h4>3 Eksperimen Interaktif Laju Reaksi</h4>
-                    <ul className="locked-feat-list" style={{ marginTop: '0.5rem' }}>
-                      <li><strong>Eksperimen A:</strong> Pengaruh Suhu & Bentuk Tablet Effervescent (Utuh vs Serbuk) dengan Stopwatch.</li>
-                      <li><strong>Eksperimen B:</strong> Reaksi Natrium Tiosulfat (Na₂S₂O₃) dengan HCl (Uji Tanda Silang & Kekeruhan Belerang).</li>
-                      <li><strong>Eksperimen C:</strong> Penguraian H₂O₂ dengan Katalis MnO₂ dan KI.</li>
-                    </ul>
-                    <div className="teaser-status" style={{ marginTop: '0.75rem' }}>
-                      <Badge variant="primary">Disiapkan sesuai Panduan PRD</Badge>
-                    </div>
-                  </div>
+                  <VirtualLab />
                 </div>
 
                 <div className="subchapter-footer">

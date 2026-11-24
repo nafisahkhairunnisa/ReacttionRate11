@@ -9,10 +9,28 @@ const defaultProgress = {
   milestoneProgress: {}
 };
 
+/**
+ * Validasi bahwa data dari storage memiliki bentuk yang benar.
+ * Pulihkan ke defaultProgress jika tidak valid (fix S2-05-03: JSON null crash).
+ */
+function validateProgress(data) {
+  if (
+    data === null ||
+    typeof data !== 'object' ||
+    Array.isArray(data) ||
+    typeof data.milestoneProgress !== 'object' ||
+    data.milestoneProgress === null
+  ) {
+    return defaultProgress;
+  }
+  return data;
+}
+
 export function CourseProgressProvider({ children }) {
-  const [progress, setProgress] = useState(() =>
-    getStorageItem(STORAGE_KEYS.PROGRESS, defaultProgress)
-  );
+  const [progress, setProgress] = useState(() => {
+    const raw = getStorageItem(STORAGE_KEYS.PROGRESS, defaultProgress);
+    return validateProgress(raw);
+  });
 
   useEffect(() => {
     setStorageItem(STORAGE_KEYS.PROGRESS, progress);

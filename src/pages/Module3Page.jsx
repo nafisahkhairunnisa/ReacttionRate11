@@ -16,12 +16,39 @@ export function Module3Page({ onNavigate }) {
   const [solverStep, setSolverStep] = useState(1);
   const [customA, setCustomA] = useState(0.25);
   const [customB, setCustomB] = useState(0.20);
+  // S2-05-06: pesan error jika input konsentrasi tidak valid
+  const [predictorError, setPredictorError] = useState('');
 
   // Data kinetika contoh
   // r = k [A]^2 [B]^1
   // Dari perc 1: 0.02 = k * (0.1)^2 * (0.1)^1 = k * 0.001 -> k = 20 M^-2 s^-1
   const kVal = 20;
-  const predictedRate = (kVal * Math.pow(customA, 2) * Math.pow(customB, 1)).toFixed(4);
+
+  // S2-05-06: Validasi konsentrasi sebelum menghitung — konsentrasi molar tidak boleh negatif
+  const isValidConcentration = (val) => typeof val === 'number' && isFinite(val) && val > 0;
+  const predictedRate = (isValidConcentration(customA) && isValidConcentration(customB))
+    ? (kVal * Math.pow(customA, 2) * Math.pow(customB, 1)).toFixed(4)
+    : null;
+
+  const handleSetCustomA = (e) => {
+    const val = parseFloat(e.target.value);
+    setCustomA(isNaN(val) ? '' : val);
+    if (!isNaN(val) && val <= 0) {
+      setPredictorError('[A] harus bernilai positif. Konsentrasi molar tidak dapat nol atau negatif.');
+    } else {
+      setPredictorError('');
+    }
+  };
+
+  const handleSetCustomB = (e) => {
+    const val = parseFloat(e.target.value);
+    setCustomB(isNaN(val) ? '' : val);
+    if (!isNaN(val) && val <= 0) {
+      setPredictorError('[B] harus bernilai positif. Konsentrasi molar tidak dapat nol atau negatif.');
+    } else {
+      setPredictorError('');
+    }
+  };
 
   return (
     <div className="module-page-container">
@@ -313,34 +340,154 @@ export function Module3Page({ onNavigate }) {
                 </div>
 
                 <div className="subchapter-body">
+                  <p className="section-subtext">
+                    Karakteristik hubungan antara konsentrasi reaktan [A], waktu reaksi (t), dan laju reaksi (r) 
+                    dapat diidentifikasi secara visual melalui kurva grafik kinetika berikut:
+                  </p>
+
                   <div className="order-cards-grid">
+                    {/* KARTU ORDE 0 */}
                     <div className="order-curve-card">
                       <div className="order-badge">ORDE 0 (NOL)</div>
                       <h4>Laju Independen terhadap Konsentrasi</h4>
                       <p>Perubahan konsentrasi reaktan <em>tidak memengaruhi</em> laju reaksi sama sekali (r = k).</p>
+                      
+                      {/* DUA GRAFIK ORDE 0 */}
+                      <div className="order-charts-container">
+                        <div className="order-chart-box">
+                          <span className="order-chart-title">Grafik r vs [A]</span>
+                          <svg viewBox="0 0 200 130" className="order-svg-chart" aria-label="Grafik r vs [A] Orde 0">
+                            <line x1="30" y1="105" x2="190" y2="105" stroke="#94a3b8" strokeWidth="1.5" />
+                            <polygon points="190,102 196,105 190,108" fill="#94a3b8" />
+                            <line x1="30" y1="105" x2="30" y2="15" stroke="#94a3b8" strokeWidth="1.5" />
+                            <polygon points="27,15 30,9 33,15" fill="#94a3b8" />
+                            <text x="185" y="122" fontSize="10" fill="#64748b" textAnchor="end">[A]</text>
+                            <text x="16" y="20" fontSize="10" fill="#64748b">r</text>
+                            {/* Garis mendatar */}
+                            <line x1="30" y1="55" x2="180" y2="55" stroke="#0284c7" strokeWidth="2.5" />
+                            <circle cx="105" cy="55" r="3.5" fill="#0284c7" />
+                            <text x="110" y="50" fontSize="10" fontWeight="bold" fill="#0284c7">r = k (tetap)</text>
+                          </svg>
+                          <span className="chart-legend">Garis mendatar (konstan)</span>
+                        </div>
+
+                        <div className="order-chart-box">
+                          <span className="order-chart-title">Grafik [A] vs t</span>
+                          <svg viewBox="0 0 200 130" className="order-svg-chart" aria-label="Grafik [A] vs t Orde 0">
+                            <line x1="30" y1="105" x2="190" y2="105" stroke="#94a3b8" strokeWidth="1.5" />
+                            <polygon points="190,102 196,105 190,108" fill="#94a3b8" />
+                            <line x1="30" y1="105" x2="30" y2="15" stroke="#94a3b8" strokeWidth="1.5" />
+                            <polygon points="27,15 30,9 33,15" fill="#94a3b8" />
+                            <text x="185" y="122" fontSize="10" fill="#64748b" textAnchor="end">t</text>
+                            <text x="12" y="20" fontSize="10" fill="#64748b">[A]</text>
+                            {/* Garis lurus menurun */}
+                            <line x1="30" y1="28" x2="175" y2="98" stroke="#0284c7" strokeWidth="2.5" />
+                            <text x="12" y="32" fontSize="9" fill="#0284c7">[A]₀</text>
+                            <text x="82" y="55" fontSize="10" fontWeight="bold" fill="#0284c7">gradien = −k</text>
+                          </svg>
+                          <span className="chart-legend">Linier menurun teratur</span>
+                        </div>
+                      </div>
+
                       <div className="curve-property-box">
-                        <span>• Grafik r vs [A]: Garis mendatar (konstan)</span>
-                        <span>• Grafik [A] vs t: Garis lurus menurun dengan kemiringan −k</span>
+                        <span>• Persamaan laju: r = k[A]⁰ = k</span>
+                        <span>• Persamaan terintegrasi: [A] = [A]₀ − kt</span>
                       </div>
                     </div>
 
+                    {/* KARTU ORDE 1 */}
                     <div className="order-curve-card">
                       <div className="order-badge">ORDE 1 (SATU)</div>
-                      <h4>Laju Sebanding Lurus</h4>
-                      <p>Jika konsentrasi reaktan dilipatgandakan 2×, maka laju reaksi ikut meningkat 2× (r = k[A]).</p>
+                      <h4>Laju Sebanding Lurus dengan Konsentrasi</h4>
+                      <p>Jika konsentrasi reaktan berlipat ganda 2×, maka laju reaksi ikut melonjak 2× (r = k[A]).</p>
+
+                      {/* DUA GRAFIK ORDE 1 */}
+                      <div className="order-charts-container">
+                        <div className="order-chart-box">
+                          <span className="order-chart-title">Grafik r vs [A]</span>
+                          <svg viewBox="0 0 200 130" className="order-svg-chart" aria-label="Grafik r vs [A] Orde 1">
+                            <line x1="30" y1="105" x2="190" y2="105" stroke="#94a3b8" strokeWidth="1.5" />
+                            <polygon points="190,102 196,105 190,108" fill="#94a3b8" />
+                            <line x1="30" y1="105" x2="30" y2="15" stroke="#94a3b8" strokeWidth="1.5" />
+                            <polygon points="27,15 30,9 33,15" fill="#94a3b8" />
+                            <text x="185" y="122" fontSize="10" fill="#64748b" textAnchor="end">[A]</text>
+                            <text x="16" y="20" fontSize="10" fill="#64748b">r</text>
+                            {/* Garis linier miring ke atas */}
+                            <line x1="30" y1="105" x2="175" y2="28" stroke="#10b981" strokeWidth="2.5" />
+                            <text x="95" y="60" fontSize="10" fontWeight="bold" fill="#10b981">gradien = k</text>
+                          </svg>
+                          <span className="chart-legend">Linier melalui titik (0,0)</span>
+                        </div>
+
+                        <div className="order-chart-box">
+                          <span className="order-chart-title">Grafik [A] vs t</span>
+                          <svg viewBox="0 0 200 130" className="order-svg-chart" aria-label="Grafik [A] vs t Orde 1">
+                            <line x1="30" y1="105" x2="190" y2="105" stroke="#94a3b8" strokeWidth="1.5" />
+                            <polygon points="190,102 196,105 190,108" fill="#94a3b8" />
+                            <line x1="30" y1="105" x2="30" y2="15" stroke="#94a3b8" strokeWidth="1.5" />
+                            <polygon points="27,15 30,9 33,15" fill="#94a3b8" />
+                            <text x="185" y="122" fontSize="10" fill="#64748b" textAnchor="end">t</text>
+                            <text x="12" y="20" fontSize="10" fill="#64748b">[A]</text>
+                            {/* Kurva peluruhan eksponensial */}
+                            <path d="M 30,28 Q 75,80 180,98" fill="none" stroke="#10b981" strokeWidth="2.5" />
+                            <text x="12" y="32" fontSize="9" fill="#10b981">[A]₀</text>
+                            <text x="88" y="58" fontSize="10" fontWeight="bold" fill="#10b981">peluruhan eksponensial</text>
+                          </svg>
+                          <span className="chart-legend">Waktu paruh t₁/₂ konstan</span>
+                        </div>
+                      </div>
+
                       <div className="curve-property-box">
-                        <span>• Grafik r vs [A]: Garis linier miring ke atas (gradien k)</span>
-                        <span>• Waktu paruh (t₁/₂) konstan: t₁/₂ = 0,693 / k</span>
+                        <span>• Persamaan laju: r = k[A]¹</span>
+                        <span>• Waktu paruh: t₁/₂ = 0,693 / k</span>
                       </div>
                     </div>
 
+                    {/* KARTU ORDE 2 */}
                     <div className="order-curve-card">
                       <div className="order-badge">ORDE 2 (DUA)</div>
-                      <h4>Laju Kuadratik</h4>
-                      <p>Jika konsentrasi reaktan dilipatgandakan 2×, maka laju reaksi melonjak 4× lipat (r = k[A]²).</p>
+                      <h4>Laju Kuadratik terhadap Konsentrasi</h4>
+                      <p>Jika konsentrasi reaktan berlipat ganda 2×, maka laju reaksi melonjak 4× lipat (r = k[A]²).</p>
+
+                      {/* DUA GRAFIK ORDE 2 */}
+                      <div className="order-charts-container">
+                        <div className="order-chart-box">
+                          <span className="order-chart-title">Grafik r vs [A]</span>
+                          <svg viewBox="0 0 200 130" className="order-svg-chart" aria-label="Grafik r vs [A] Orde 2">
+                            <line x1="30" y1="105" x2="190" y2="105" stroke="#94a3b8" strokeWidth="1.5" />
+                            <polygon points="190,102 196,105 190,108" fill="#94a3b8" />
+                            <line x1="30" y1="105" x2="30" y2="15" stroke="#94a3b8" strokeWidth="1.5" />
+                            <polygon points="27,15 30,9 33,15" fill="#94a3b8" />
+                            <text x="185" y="122" fontSize="10" fill="#64748b" textAnchor="end">[A]</text>
+                            <text x="16" y="20" fontSize="10" fill="#64748b">r</text>
+                            {/* Kurva parabola kuadratik ke atas */}
+                            <path d="M 30,105 Q 120,100 178,25" fill="none" stroke="#8b5cf6" strokeWidth="2.5" />
+                            <text x="75" y="55" fontSize="10" fontWeight="bold" fill="#8b5cf6">r = k[A]² (parabola)</text>
+                          </svg>
+                          <span className="chart-legend">Kurva melengkung ke atas</span>
+                        </div>
+
+                        <div className="order-chart-box">
+                          <span className="order-chart-title">Grafik 1/[A] vs t</span>
+                          <svg viewBox="0 0 200 130" className="order-svg-chart" aria-label="Grafik 1/[A] vs t Orde 2">
+                            <line x1="30" y1="105" x2="190" y2="105" stroke="#94a3b8" strokeWidth="1.5" />
+                            <polygon points="190,102 196,105 190,108" fill="#94a3b8" />
+                            <line x1="30" y1="105" x2="30" y2="15" stroke="#94a3b8" strokeWidth="1.5" />
+                            <polygon points="27,15 30,9 33,15" fill="#94a3b8" />
+                            <text x="185" y="122" fontSize="10" fill="#64748b" textAnchor="end">t</text>
+                            <text x="8" y="20" fontSize="9" fill="#64748b">1/[A]</text>
+                            {/* Garis linier mendaki ke atas */}
+                            <line x1="30" y1="95" x2="175" y2="28" stroke="#8b5cf6" strokeWidth="2.5" />
+                            <text x="8" y="99" fontSize="8" fill="#8b5cf6">1/[A]₀</text>
+                            <text x="75" y="55" fontSize="10" fontWeight="bold" fill="#8b5cf6">gradien = +k</text>
+                          </svg>
+                          <span className="chart-legend">Linier positif mendaki</span>
+                        </div>
+                      </div>
+
                       <div className="curve-property-box">
-                        <span>• Grafik r vs [A]: Kurva parabola melengkung ke atas</span>
-                        <span>• Grafik 1/[A] vs t: Garis lurus dengan kemiringan positif +k</span>
+                        <span>• Persamaan laju: r = k[A]²</span>
+                        <span>• Persamaan terintegrasi: 1/[A] = 1/[A]₀ + kt</span>
                       </div>
                     </div>
                   </div>
@@ -521,8 +668,9 @@ export function Module3Page({ onNavigate }) {
                               max="1.00"
                               step="0.05"
                               value={customA}
-                              onChange={(e) => setCustomA(parseFloat(e.target.value) || 0)}
-                              className="chem-number-input"
+                              onChange={handleSetCustomA}
+                              className={`chem-number-input${predictorError && predictorError.includes('[A]') ? ' input-error' : ''}`}
+                              aria-describedby="predictor-error-msg"
                             />
                           </div>
 
@@ -537,18 +685,34 @@ export function Module3Page({ onNavigate }) {
                               max="1.00"
                               step="0.05"
                               value={customB}
-                              onChange={(e) => setCustomB(parseFloat(e.target.value) || 0)}
-                              className="chem-number-input"
+                              onChange={handleSetCustomB}
+                              className={`chem-number-input${predictorError && predictorError.includes('[B]') ? ' input-error' : ''}`}
+                              aria-describedby="predictor-error-msg"
                             />
                           </div>
                         </div>
 
+                        {/* S2-05-06: Tampilkan pesan error jika konsentrasi tidak valid */}
+                        {predictorError && (
+                          <div id="predictor-error-msg" className="predictor-error-banner" role="alert">
+                            ⚠️ {predictorError}
+                          </div>
+                        )}
+
                         <div className="prediction-result-banner">
                           <span className="pred-label">Hasil Prediksi Laju Reaksi:</span>
-                          <span className="pred-val">r = {predictedRate} M · s⁻¹</span>
-                          <span className="pred-formula">
-                            Hitungan: 20 × ({customA})² × ({customB})¹ = {predictedRate} M/s
-                          </span>
+                          {predictedRate !== null ? (
+                            <>
+                              <span className="pred-val">r = {predictedRate} M · s⁻¹</span>
+                              <span className="pred-formula">
+                                Hitungan: 20 × ({customA})² × ({customB})¹ = {predictedRate} M/s
+                              </span>
+                            </>
+                          ) : (
+                            <span className="pred-val pred-val--invalid">
+                              — Masukkan konsentrasi positif untuk melihat hasil —
+                            </span>
+                          )}
                         </div>
                       </div>
                     )}

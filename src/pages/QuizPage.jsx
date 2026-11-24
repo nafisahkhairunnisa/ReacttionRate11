@@ -1,35 +1,58 @@
 import { useState } from 'react';
 import { QUIZ_QUESTIONS } from '../data/quizQuestions';
-import { setStorageItem, STORAGE_KEYS } from '../utils/storage';
+import { setStorageItem, getStorageItem, STORAGE_KEYS } from '../utils/storage';
 import { useGamification } from '../hooks/useGamification';
 import { Button } from '../components/common/Button';
 import { Badge } from '../components/common/Badge';
+
+// Versi soal — bump ini jika bank soal berubah agar attempt lama tidak bercampur
+const QUESTION_VERSION = 'v1';
 
 /**
  * QuizPage Component - ChemVerse
  * Halaman Kuis Interaktif 10 Soal Pilihan Ganda Kinetika Kimia Kelas 11 SMA.
  * Dilengkapi navigasi nomor soal, petunjuk rumus, umpan balik instan,
- * pembahasan kimia mendalam, penyimpanan skor lokal, dan integrasi poin XP.
+ * pembahasan kimia mendalam, penyimpanan skor lokal dengan riwayat attempt,
+ * dan integrasi poin XP.
+ *
+ * Fix S2-05-02: Draf disimpan per butir ke localStorage; riwayat tidak tertimpa.
+ * Fix S2-05-04: Pesan gagal simpan ditampilkan ke pengguna.
  */
 export function QuizPage({ onNavigate }) {
   const { addXP } = useGamification();
 
+  // Muat draf tersimpan (S2-05-02: pulihkan jawaban setelah reload)
+  const [selectedAnswers, setSelectedAnswers] = useState(() => {
+    const draft = getStorageItem(`${STORAGE_KEYS.QUIZ}_draft`, null);
+    if (draft && draft.questionVersion === QUESTION_VERSION && typeof draft.answers === 'object') {
+      return draft.answers;
+    }
+    return {};
+  });
+
   // State kuis
   const [currentIdx, setCurrentIdx] = useState(0);
-  const [selectedAnswers, setSelectedAnswers] = useState({}); // { [questionId]: 'A' | 'B' | 'C' | 'D' | 'E' }
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [showHint, setShowHint] = useState({});
+  // S2-05-04: status penyimpanan hasil
+  const [saveError, setSaveError] = useState(false);
 
   const currentQ = QUIZ_QUESTIONS[currentIdx];
   const totalQuestions = QUIZ_QUESTIONS.length;
 
-  // Tangani pemilihan opsi
+  // Tangani pemilihan opsi — simpan draf per butir ke localStorage (S2-05-02)
   const handleSelectOption = (optionId) => {
-    if (isSubmitted) return; // Kunci jawaban setelah disubmit
-    setSelectedAnswers((prev) => ({
-      ...prev,
-      [currentQ.id]: optionId
-    }));
+    if (isSubmitted) return;
+    setSelectedAnswers((prev) => {
+      const next = { ...prev, [currentQ.id]: optionId };
+      // Simpan draf secara aman agar dapat dipulihkan setelah reload
+      setStorageItem(`${STORAGE_KEYS.QUIZ}_draft`, {
+        answers: next,
+        questionVersion: QUESTION_VERSION,
+        savedAt: new Date().toISOString()
+      });
+      return next;
+    });
   };
 
   // Toggle petunjuk rumus
@@ -50,14 +73,63 @@ export function QuizPage({ onNavigate }) {
     });
 
     const finalScore = Math.round((correctCount / totalQuestions) * 100);
+    const attemptId = `attempt-${Date.now()}`;
 
-    // Simpan ke localStorage secara aman
-    setStorageItem(STORAGE_KEYS.QUIZ, {
+    // Baca riwayat lama (S2-05-02: jangan timpa, tambahkan ke array riwayat)
+    const prevHistory = getStorageItem(STORAGE_KEYS.QUIZ, null);
+    const prevAttempts = Array.isArray(prevHistory?.attempts) ? prevHistory.attempts : [];
+    const prevBest = typeof prevHistory?.bestScore === 'number' ? prevHistory.bestScore : null;
+
+    const newAttempt = {
+      attemptId,
+      questionVersion: QUESTION_VERSION,
       score: finalScore,
       correctCount,
       total: totalQuestions,
+      answers: { ...selectedAnswers },
       completedAt: new Date().toISOString()
-    });
+    };
+
+    const newBestScore = prevBest !== null ? Math.max(prevBest, finalScore) : finalScore;
+
+    const historyPayload = {
+      // Skor terbaru & terbaik
+      score: finalScore,
+      bestScore: newBestScore,
+      correctCount,
+      total: totalQuestions,
+      questionVersion: QUESTION_VERSION,
+      completedAt: new Date().toISOString(),
+      // Riwayat semua percobaan (S2-05-02: skor lama tidak hilang)
+      attempts: [newAttempt, ...prevAttempts]
+    };
+
+    // Simpan riwayat kuis — tangani kegagalan simpan (S2-05-04)
+    const quizSaved = setStorageItem(STORAGE_KEYS.QUIZ, historyPayload);
+
+    // Simpan otomatis ke daftar rekapitulasi nilai untuk Panel Guru
+    const studentUser = getStorageItem(STORAGE_KEYS.AUTH, { name: 'Siswa Belajar Mandiri', className: 'XI MIPA 1' });
+    const existingScores = getStorageItem(STORAGE_KEYS.STUDENT_SCORES, []);
+    const newScoreEntry = {
+      id: `quiz-${Date.now()}`,
+      name: studentUser.name || 'Siswa Mandiri',
+      className: studentUser.className || 'XI MIPA 1',
+      score: finalScore,
+      correctCount,
+      total: totalQuestions,
+      passed: finalScore >= 75,
+      date: new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })
+    };
+    const otherScores = Array.isArray(existingScores) ? existingScores.filter((s) => s.name !== newScoreEntry.name) : [];
+    setStorageItem(STORAGE_KEYS.STUDENT_SCORES, [newScoreEntry, ...otherScores]);
+
+    // Hapus draf setelah submit berhasil (S2-05-02)
+    if (quizSaved) {
+      setStorageItem(`${STORAGE_KEYS.QUIZ}_draft`, null);
+    }
+
+    // Beri tahu pengguna jika penyimpanan gagal (S2-05-04)
+    setSaveError(!quizSaved);
 
     // Tambah XP gamifikasi
     addXP(finalScore);
@@ -66,10 +138,12 @@ export function QuizPage({ onNavigate }) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // Ulangi kuis
+  // Ulangi kuis — hapus draf, reset state (S2-05-02: riwayat di storage tetap aman)
   const handleResetQuiz = () => {
+    setStorageItem(`${STORAGE_KEYS.QUIZ}_draft`, null);
     setSelectedAnswers({});
     setIsSubmitted(false);
+    setSaveError(false);
     setCurrentIdx(0);
     setShowHint({});
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -123,6 +197,26 @@ export function QuizPage({ onNavigate }) {
       {isSubmitted ? (
         <section className="quiz-results-section" aria-labelledby="results-title">
           <div className="results-summary-card">
+            {/* S2-05-04: Peringatan jika penyimpanan localStorage gagal (misal QuotaExceededError) */}
+            {saveError && (
+              <div
+                className="quiz-save-error-banner"
+                role="alert"
+                style={{
+                  background: '#fef2f2',
+                  border: '1px solid #ef4444',
+                  color: '#991b1b',
+                  padding: '0.85rem 1.15rem',
+                  borderRadius: '0.5rem',
+                  marginBottom: '1.25rem',
+                  fontSize: '0.92rem',
+                  lineHeight: '1.5'
+                }}
+              >
+                ⚠️ <strong>Peringatan Penyimpanan:</strong> Skor kuis Anda ({scorePercent}/100) berhasil dihitung dan pembahasan dapat Anda pelajari di bawah. Namun, sistem <em>gagal menyimpan riwayat skor</em> ke peramban (misal karena kuota penyimpanan peramban penuh atau dibatasi). Silakan pastikan penyimpanan lokal peramban Anda aktif.
+              </div>
+            )}
+
             <div className="results-badge-strip">
               <Badge variant={scorePercent >= 70 ? 'effective' : 'warning'}>
                 {scorePercent >= 70 ? '🎉 LULUS STANDAR KKM' : '📚 BUTUH LATIHAN LAGI'}

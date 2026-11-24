@@ -11,6 +11,9 @@ export const STORAGE_KEYS = {
   LAB_STATE: 'kinetilab_lab_state_v1',
   NOTES: 'kinetilab_notes_v1',
   PROFILE: 'kinetilab_profile_v1',
+  AUTH: 'kinetilab_auth_v1',
+  CLASSES: 'kinetilab_classes_v1',
+  STUDENT_SCORES: 'kinetilab_student_scores_v1',
   SETTINGS: 'kinetilab_user_settings_v1',
 };
 
