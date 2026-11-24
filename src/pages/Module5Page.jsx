@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useCourseProgress } from '../hooks/useCourseProgress';
-import { getStorageItem, STORAGE_KEYS } from '../utils/storage';
+import { useAuth } from '../hooks/useAuth';
+import { getStorageItem, setStorageItem, STORAGE_KEYS } from '../utils/storage';
 import { Button } from '../components/common/Button';
 import { Badge } from '../components/common/Badge';
 
@@ -11,17 +12,30 @@ import { Badge } from '../components/common/Badge';
  */
 export function Module5Page({ onNavigate }) {
   const { isSubchapterComplete, toggleSubchapter, progressPercent } = useCourseProgress();
+  const { currentUser } = useAuth();
   const [activeTab, setActiveTab] = useState('5.1');
 
   // Ambil riwayat kuis dari localStorage
   const quizHistory = getStorageItem(STORAGE_KEYS.QUIZ, null);
-  const bestScore = quizHistory?.score ?? null;
+  // S2-05-01: bestScore dari riwayat attempts, bukan langsung score yang bisa tertimpa
+  const bestScore = quizHistory?.bestScore ?? quizHistory?.score ?? null;
+  const hasValidScore = typeof bestScore === 'number';
+  // Sertifikat hanya layak dicetak jika ada skor kuis yang valid
+  const isCertificateEarned = hasValidScore && bestScore >= 75;
 
-  // Nama siswa untuk sertifikat (disimpan lokal di peramban)
+  // Nama siswa untuk sertifikat — sinkron dengan login jika ada
+  // S2-05-01: nama disimpan ke localStorage agar tidak hilang setelah reload
   const [studentName, setStudentName] = useState(() => {
-    const profile = getStorageItem(STORAGE_KEYS.PROFILE, { name: '' });
-    return profile?.name || 'Pelajar Kimia Hebat';
+    return currentUser?.name || getStorageItem(STORAGE_KEYS.PROFILE, { name: '' })?.name || 'Pelajar Kimia Hebat';
   });
+
+  // Simpan nama ke localStorage setiap kali berubah (fix: nama hilang setelah reload)
+  const handleStudentNameChange = (e) => {
+    const newName = e.target.value;
+    setStudentName(newName);
+    const existingProfile = getStorageItem(STORAGE_KEYS.PROFILE, {});
+    setStorageItem(STORAGE_KEYS.PROFILE, { ...existingProfile, name: newName });
+  };
 
   // Tanggal sertifikat
   const [issueDate] = useState(() =>
@@ -30,6 +44,13 @@ export function Module5Page({ onNavigate }) {
 
   const handlePrintCertificate = () => {
     window.print();
+  };
+
+  // Predikat berdasarkan skor terbaik
+  const getPredikat = (score) => {
+    if (score >= 90) return 'Master Kinetika Kimia';
+    if (score >= 75) return 'Lulus — Pelajar Kinetika';
+    return 'Perlu Peningkatan';
   };
 
   return (
@@ -288,7 +309,7 @@ export function Module5Page({ onNavigate }) {
                       id="student-name-input"
                       type="text"
                       value={studentName}
-                      onChange={(e) => setStudentName(e.target.value)}
+                      onChange={handleStudentNameChange}
                       placeholder="Masukkan nama Anda..."
                       className="cert-text-input"
                     />

@@ -1,6 +1,7 @@
 import { useRef } from 'react';
 import { COURSE_CHAPTERS } from '../../data/courseChapters';
 import { useCourseProgress } from '../../hooks/useCourseProgress';
+import { useAuth } from '../../hooks/useAuth';
 import { FormulaLabSheet } from './FormulaLabSheet';
 import { Button } from '../common/Button';
 import { Card } from '../common/Card';
@@ -10,10 +11,11 @@ import { ProgressBar } from '../common/ProgressBar';
 /**
  * HomePage Component - ChemVerse
  * Beranda utama ChemVerse untuk Kelas 11 SMA.
- * Seluruh Modul 1 s.d. Modul 5 dan Arena Kuis Interaktif telah aktif dan dapat diakses mandiri.
+ * Seluruh Modul 1 s.d. Modul 5 dan Arena Kuis Interaktif dapat diakses setelah pengguna masuk (login).
  */
 export function HomePage({ onNavigate }) {
   const { progressPercent, isSubchapterComplete } = useCourseProgress();
+  const { currentUser, isLoggedIn } = useAuth();
   const moduleSectionRef = useRef(null);
 
   const handleScrollToModules = () => {
@@ -29,7 +31,11 @@ export function HomePage({ onNavigate }) {
         <div className="hero-badge-row">
           <Badge variant="primary" className="hero-tag">CHEMVERSE • KINETIKALAB 11</Badge>
           <span className="hero-phase">Fase F • Kurikulum Merdeka</span>
-          <Badge variant="effective">Modul 1 s.d. 5 Lengkap Aktif</Badge>
+          {isLoggedIn ? (
+            <Badge variant="effective">Sesi Aktif: {currentUser?.name}</Badge>
+          ) : (
+            <Badge variant="cyan">Autentikasi Firebase Aktif</Badge>
+          )}
         </div>
 
         <h1 id="hero-title" className="hero-main-title">
@@ -43,31 +49,57 @@ export function HomePage({ onNavigate }) {
           melalui alur bertahap yang mudah dipahami.
         </p>
 
-        <div className="hero-cta-group">
-          <Button
-            variant="primary"
-            size="lg"
-            className="btn-hero-start"
-            onClick={() => onNavigate('modul-1')}
-          >
-            🚀 Mulai Belajar Modul 1
-          </Button>
-          <Button
-            variant="primary"
-            size="lg"
-            className="btn-hero-quiz"
-            onClick={() => onNavigate('kuis')}
-          >
-            📝 Kuis Interaktif (10 Soal)
-          </Button>
-          <Button
-            variant="secondary"
-            size="lg"
-            className="btn-hero-outline"
-            onClick={handleScrollToModules}
-          >
-            📋 Lihat 5 Modul Belajar
-          </Button>
+        {/* TOMBOL UTAMA HERO: JIKA BELUM LOGIN TAMPILKAN TOMBOL LOGIN DI TENGAH */}
+        {!isLoggedIn ? (
+          <div className="hero-cta-center-login">
+            <Button
+              variant="primary"
+              size="lg"
+              className="btn-hero-login-center"
+              onClick={() => onNavigate('login')}
+            >
+              🔐 Masuk untuk Mulai Belajar (Email / Akun Google) →
+            </Button>
+            <p className="hero-login-subtext">
+              Masuk dengan akun siswa atau guru untuk membuka Modul 1 sampai Modul 5, laboratorium praktikum, dan kuis interaktif.
+            </p>
+          </div>
+        ) : (
+          <div className="hero-cta-group">
+            <Button
+              variant="primary"
+              size="lg"
+              className="btn-hero-start"
+              onClick={() => onNavigate('modul-1')}
+            >
+              🚀 Lanjut Belajar Modul 1
+            </Button>
+            <Button
+              variant="primary"
+              size="lg"
+              className="btn-hero-quiz"
+              onClick={() => onNavigate('kuis')}
+            >
+              📝 Kuis Interaktif (10 Soal)
+            </Button>
+            <Button
+              variant="secondary"
+              size="lg"
+              className="btn-hero-outline"
+              onClick={handleScrollToModules}
+            >
+              📋 Lihat 5 Modul Belajar
+            </Button>
+          </div>
+        )}
+
+        {/* Hiasan Visual Kinetika Kimia Dinamis */}
+        <div className="hero-kinetic-decorations" aria-hidden="true">
+          <span className="kinetic-floating-pill k-pill-1">⚛️ r = −Δ[A]/Δt</span>
+          <span className="kinetic-floating-pill k-pill-2">🔥 E ≥ Eₐ (Tumbukan Efektif)</span>
+          <span className="kinetic-floating-pill k-pill-3">🧪 r = k[A]ᵐ[B]ⁿ</span>
+          <span className="kinetic-floating-pill k-pill-4">🫧 ΔT = +10°C ⇒ Laju × 2–3</span>
+          <span className="kinetic-floating-pill k-pill-5">⚡ Katalis ↓ Eₐ</span>
         </div>
 
         {/* Ringkasan Progres Belajar */}
@@ -83,6 +115,38 @@ export function HomePage({ onNavigate }) {
           </div>
         </div>
       </section>
+
+      {/* 1.5 PITA FITUR KHAS KINETIKA KIMIA */}
+      <div className="kinetic-features-ribbon" role="region" aria-label="Sorotan Fitur Laboratorium">
+        <div className="ribbon-item">
+          <span className="ribbon-icon">🧪</span>
+          <div>
+            <strong>Lab Virtual 3 Eksperimen</strong>
+            <span>Effervescent, Uji Silang Na₂S₂O₃, H₂O₂ + Katalis</span>
+          </div>
+        </div>
+        <div className="ribbon-item">
+          <span className="ribbon-icon">⚛️</span>
+          <div>
+            <strong>Simulasi Tumbukan 2D</strong>
+            <span>PhET Diffusion & Tumbukan Efektif Mikroskopis</span>
+          </div>
+        </div>
+        <div className="ribbon-item">
+          <span className="ribbon-icon">📈</span>
+          <div>
+            <strong>Grafik Orde 0, 1, dan 2</strong>
+            <span>Visualisasi Kurva r vs [A] & Waktu Paruh</span>
+          </div>
+        </div>
+        <div className="ribbon-item">
+          <span className="ribbon-icon">👩‍🏫</span>
+          <div>
+            <strong>Panel Guru & Ekspor Nilai</strong>
+            <span>Manajemen Rombel/Kelompok & Unduh Nilai CSV</span>
+          </div>
+        </div>
+      </div>
 
       {/* 2. BANNER SPESIAL KUIS INTERAKTIF */}
       <section className="quiz-highlight-banner" aria-labelledby="quiz-banner-title">
@@ -104,9 +168,9 @@ export function HomePage({ onNavigate }) {
             variant="primary"
             size="lg"
             className="btn-banner-quiz"
-            onClick={() => onNavigate('kuis')}
+            onClick={() => onNavigate(isLoggedIn ? 'kuis' : 'login')}
           >
-            Mulai Kuis Sekarang (10 Soal) →
+            {isLoggedIn ? 'Mulai Kuis Sekarang (10 Soal) →' : '🔐 Masuk untuk Mengikuti Kuis →'}
           </Button>
         </div>
       </section>
@@ -165,7 +229,7 @@ export function HomePage({ onNavigate }) {
                 <strong>Standar Capaian Pembelajaran:</strong> Selaras dengan materi esensial kinetika kimia Kurikulum Merdeka.
               </li>
               <li>
-                <strong>Hemat Waktu & Praktis:</strong> Langsung dibuka di browser tanpa instalasi rumit, akun berbayar, atau login.
+                <strong>Praktis & Terintegrasi:</strong> Langsung masuk dengan Akun Google atau Email tanpa biaya langganan apapun.
               </li>
             </ul>
           </div>
@@ -178,56 +242,87 @@ export function HomePage({ onNavigate }) {
           <span className="section-eyebrow">KURIKULUM KINETIKA LENGKAP</span>
           <h2 id="modules-title" className="section-main-title">Daftar Modul Pembelajaran (Modul 1 s.d. 5)</h2>
           <p className="section-lead-text">
-            Seluruh modul telah dioptimalkan dan siap dipelajari secara mendalam:
+            {isLoggedIn
+              ? 'Seluruh modul telah terbuka dan siap dipelajari secara mendalam:'
+              : 'Pilihan modul hanya dapat diakses setelah siswa atau guru masuk (login) ke platform:'}
           </p>
         </div>
 
-        <div className="modules-catalog-grid">
-          {COURSE_CHAPTERS.map((module) => {
-            const pageTarget = `modul-${module.number}`;
-            const isCompleted = module.subchapters.every((s) => isSubchapterComplete(s.id));
+        {/* JIKA BELUM LOGIN: TAMPILKAN GATE PENGUNCI DENGAN TOMBOL LOGIN DI TENGAH */}
+        {!isLoggedIn ? (
+          <div className="modules-locked-gate">
+            <div className="gate-lock-icon">🔒</div>
+            <h3 className="gate-title">Pilihan Modul Terkunci untuk Tamu</h3>
+            <p className="gate-desc">
+              Pilihan Modul 1 sampai Modul 5, simulasi partikel PhET, 3 eksperimen laboratorium virtual, 
+              dan kuis kinetika kimia hanya dapat dibuka setelah Anda masuk menggunakan <strong>Email</strong> atau <strong>Akun Google</strong>.
+            </p>
+            <div className="gate-center-action">
+              <Button
+                variant="primary"
+                size="lg"
+                className="btn-gate-login"
+                onClick={() => onNavigate('login')}
+              >
+                🔐 Masuk Sekarang untuk Membuka Seluruh Modul (Email / Google) →
+              </Button>
+            </div>
+            <div className="gate-preview-strip">
+              <span className="gate-pill">Modul 1: Konsep & Hubungan Koefisien (+/−)</span>
+              <span className="gate-pill">Modul 2: Teori Tumbukan & Lab Virtual (3 Eksperimen)</span>
+              <span className="gate-pill">Modul 3: Grafik Kinetika Orde 0, 1, 2 & Solver</span>
+              <span className="gate-pill">Modul 4: Diagram Profil Energi Kinetik (SVG)</span>
+              <span className="gate-pill">Modul 5: Rangkuman & Sertifikat Kelulusan</span>
+            </div>
+          </div>
+        ) : (
+          <div className="modules-catalog-grid">
+            {COURSE_CHAPTERS.map((module) => {
+              const pageTarget = `modul-${module.number}`;
+              const isCompleted = module.subchapters.every((s) => isSubchapterComplete(s.id));
 
-            return (
-              <Card key={module.id} className="catalog-module-card">
-                <div className="catalog-card-header">
-                  <div className="catalog-badge-strip">
-                    <span className="catalog-mod-num">MODUL 0{module.number}</span>
-                    <Badge variant={isCompleted ? 'effective' : 'primary'}>
-                      {isCompleted ? '✓ Selesai' : 'Siap Dipelajari'}
-                    </Badge>
+              return (
+                <Card key={module.id} className="catalog-module-card">
+                  <div className="catalog-card-header">
+                    <div className="catalog-badge-strip">
+                      <span className="catalog-mod-num">MODUL 0{module.number}</span>
+                      <Badge variant={isCompleted ? 'effective' : 'primary'}>
+                        {isCompleted ? '✓ Selesai' : 'Siap Dipelajari'}
+                      </Badge>
+                    </div>
+                    <h3 className="catalog-mod-title">{module.title}</h3>
+                    <p className="catalog-mod-desc">{module.description}</p>
                   </div>
-                  <h3 className="catalog-mod-title">{module.title}</h3>
-                  <p className="catalog-mod-desc">{module.description}</p>
-                </div>
 
-                <div className="catalog-subchapters-list">
-                  <span className="list-label">Rincian Materi:</span>
-                  <ul>
-                    {module.subchapters.slice(0, 3).map((sub) => (
-                      <li key={sub.id}>
-                        {sub.id} {sub.title}
-                      </li>
-                    ))}
-                    {module.subchapters.length > 3 && (
-                      <li className="more-item">+ {module.subchapters.length - 3} subbagian lainnya...</li>
-                    )}
-                  </ul>
-                </div>
+                  <div className="catalog-subchapters-list">
+                    <span className="list-label">Rincian Materi:</span>
+                    <ul>
+                      {module.subchapters.slice(0, 3).map((sub) => (
+                        <li key={sub.id}>
+                          {sub.id} {sub.title}
+                        </li>
+                      ))}
+                      {module.subchapters.length > 3 && (
+                        <li className="more-item">+ {module.subchapters.length - 3} subbagian lainnya...</li>
+                      )}
+                    </ul>
+                  </div>
 
-                <div className="catalog-card-actions">
-                  <Button
-                    variant="primary"
-                    size="md"
-                    className="btn-open-catalog"
-                    onClick={() => onNavigate(pageTarget)}
-                  >
-                    Buka Halaman Modul {module.number} →
-                  </Button>
-                </div>
-              </Card>
-            );
-          })}
-        </div>
+                  <div className="catalog-card-actions">
+                    <Button
+                      variant="primary"
+                      size="md"
+                      className="btn-open-catalog"
+                      onClick={() => onNavigate(pageTarget)}
+                    >
+                      Buka Halaman Modul {module.number} →
+                    </Button>
+                  </div>
+                </Card>
+              );
+            })}
+          </div>
+        )}
       </section>
 
       {/* 5. RUANG RUMUS LEMBAR LABORATORIUM */}
