@@ -301,6 +301,40 @@ export function Module5Page({ onNavigate }) {
                     Nama Anda disimpan secara aman hanya di perangkat lokal peramban Anda.
                   </p>
 
+                  {/* S2-05-01: Tampilkan status kelayakan penerbitan sertifikat */}
+                  {!isCertificateEarned && (
+                    <div
+                      className="cert-not-earned-banner"
+                      role="alert"
+                      style={{
+                        background: '#fef3c7',
+                        border: '1px solid #f59e0b',
+                        color: '#92400e',
+                        padding: '1rem 1.25rem',
+                        borderRadius: '0.5rem',
+                        marginBottom: '1.25rem',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '0.5rem'
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 'bold' }}>
+                        <span>🔒</span>
+                        <span>Sertifikat Kelulusan Belum Diterbitkan</span>
+                      </div>
+                      <p style={{ margin: 0, fontSize: '0.92rem' }}>
+                        {!hasValidScore
+                          ? 'Anda belum mengerjakan kuis evaluasi. Selesaikan kuis komprehensif 10 soal dengan nilai minimal 70 (Standar KKM) untuk menerbitkan dan mencetak sertifikat resmi.'
+                          : `Nilai kuis Anda saat ini adalah ${bestScore}/100 (belum mencapai batas KKM minimal 70). Silakan ulangi kuis untuk memperbaiki nilai Anda.`}
+                      </p>
+                      <div>
+                        <Button variant="primary" size="sm" onClick={() => onNavigate('kuis')}>
+                          📝 {!hasValidScore ? 'Mulai Kerjakan Kuis Sekarang' : 'Ulangi Kuis Evaluasi'}
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+
                   <div className="certificate-input-row">
                     <label htmlFor="student-name-input" className="cert-label">
                       Nama Lengkap Siswa / Pelajar:
@@ -316,7 +350,31 @@ export function Module5Page({ onNavigate }) {
                   </div>
 
                   {/* TAMPILAN FISIK SERTIFIKAT DIGITAL */}
-                  <div className="certificate-frame" id="printable-certificate">
+                  <div
+                    className={`certificate-frame ${!isCertificateEarned ? 'certificate-frame--preview' : ''}`}
+                    id="printable-certificate"
+                    style={!isCertificateEarned ? { opacity: 0.82, position: 'relative' } : {}}
+                  >
+                    {!isCertificateEarned && (
+                      <div
+                        style={{
+                          position: 'absolute',
+                          top: '16px',
+                          right: '16px',
+                          background: '#f59e0b',
+                          color: '#ffffff',
+                          padding: '0.35rem 0.85rem',
+                          borderRadius: '9999px',
+                          fontWeight: '800',
+                          fontSize: '0.75rem',
+                          letterSpacing: '0.05em',
+                          zIndex: 10,
+                          boxShadow: '0 2px 6px rgba(0,0,0,0.15)'
+                        }}
+                      >
+                        PRATINJAU — BELUM VALID
+                      </div>
+                    )}
                     <div className="cert-inner-border">
                       <div className="cert-watermark">CHEMVERSE</div>
                       
@@ -339,11 +397,15 @@ export function Module5Page({ onNavigate }) {
                       <div className="cert-details-row">
                         <div className="cert-detail-item">
                           <span className="detail-label">Nilai Kuis:</span>
-                          <strong className="detail-val">{bestScore !== null ? `${bestScore} / 100` : '100 / 100'}</strong>
+                          <strong className="detail-val">
+                            {hasValidScore ? `${bestScore} / 100` : '— / 100'}
+                          </strong>
                         </div>
                         <div className="cert-detail-item">
                           <span className="detail-label">Predikat:</span>
-                          <strong className="detail-val">Master Kinetika Kimia</strong>
+                          <strong className="detail-val">
+                            {hasValidScore ? getPredikat(bestScore) : '—'}
+                          </strong>
                         </div>
                         <div className="cert-detail-item">
                           <span className="detail-label">Tanggal:</span>
@@ -366,7 +428,13 @@ export function Module5Page({ onNavigate }) {
                   </div>
 
                   <div className="certificate-actions">
-                    <Button variant="primary" size="lg" onClick={handlePrintCertificate}>
+                    <Button
+                      variant="primary"
+                      size="lg"
+                      onClick={isCertificateEarned ? handlePrintCertificate : undefined}
+                      disabled={!isCertificateEarned}
+                      title={!isCertificateEarned ? 'Sertifikat belum memenuhi syarat kelulusan (KKM minimal 70)' : 'Cetak atau simpan sertifikat PDF'}
+                    >
                       🖨️ Cetak / Simpan PDF Sertifikat
                     </Button>
                     <Button variant="secondary" size="lg" onClick={() => onNavigate('kuis')}>

@@ -197,6 +197,26 @@ export function QuizPage({ onNavigate }) {
       {isSubmitted ? (
         <section className="quiz-results-section" aria-labelledby="results-title">
           <div className="results-summary-card">
+            {/* S2-05-04: Peringatan jika penyimpanan localStorage gagal (misal QuotaExceededError) */}
+            {saveError && (
+              <div
+                className="quiz-save-error-banner"
+                role="alert"
+                style={{
+                  background: '#fef2f2',
+                  border: '1px solid #ef4444',
+                  color: '#991b1b',
+                  padding: '0.85rem 1.15rem',
+                  borderRadius: '0.5rem',
+                  marginBottom: '1.25rem',
+                  fontSize: '0.92rem',
+                  lineHeight: '1.5'
+                }}
+              >
+                ⚠️ <strong>Peringatan Penyimpanan:</strong> Skor kuis Anda ({scorePercent}/100) berhasil dihitung dan pembahasan dapat Anda pelajari di bawah. Namun, sistem <em>gagal menyimpan riwayat skor</em> ke peramban (misal karena kuota penyimpanan peramban penuh atau dibatasi). Silakan pastikan penyimpanan lokal peramban Anda aktif.
+              </div>
+            )}
+
             <div className="results-badge-strip">
               <Badge variant={scorePercent >= 70 ? 'effective' : 'warning'}>
                 {scorePercent >= 70 ? '🎉 LULUS STANDAR KKM' : '📚 BUTUH LATIHAN LAGI'}
